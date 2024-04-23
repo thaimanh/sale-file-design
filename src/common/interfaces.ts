@@ -4,8 +4,17 @@ export interface IObject<T = unknown> {
 
 export interface IResponseCommon<ResultType> {
   result: ResultType;
-  meta: {
+  meta?: {
     total: number;
     page: number;
   };
+}
+
+export interface IResponseStatus {
+  result: boolean;
+}
+
+export enum Role {
+  User = 'user',
+  Admin = 'admin',
 }

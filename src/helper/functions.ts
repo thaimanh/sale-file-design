@@ -1,5 +1,5 @@
 import express from 'express';
-import {IObject} from '../definition/interfaces';
+import {IObject} from '../common/interfaces';
 import crypto from 'crypto';
 
 export const addZero = (item: string | number, length: number) => {
@@ -13,6 +13,13 @@ export const hashMd5 = (str: string, salt?: string): string => {
     .digest('hex');
 };
 
+/**
+ *
+ * @param {string} str
+ * @param {string} strHash
+ * @param {string} salt
+ * @returns {boolean}
+ */
 export const compareHash = (str: string = '', strHash: string = '', salt?: string): boolean => {
   const hashed = hashMd5(str, salt);
   return hashed === strHash;
@@ -53,6 +60,27 @@ export const objFilterKeys = (objSrc: IObject<any>, keys: string[]) => {
       objDest[key] = objSrc[key];
     }
   }
+  return objDest;
+};
+
+/**
+ * @description Function used to filter undefined values
+ * @param objSrc
+ * @returns
+ */
+export const objValidateKey = (objSrc: IObject<any>) => {
+  if (!(objSrc instanceof Object)) {
+    objSrc = {};
+  }
+
+  const objDest: IObject<any> = {};
+
+  for (const key of Object.keys(objSrc)) {
+    if (objSrc[key]) {
+      objDest[key] = objSrc[key];
+    }
+  }
+
   return objDest;
 };
 

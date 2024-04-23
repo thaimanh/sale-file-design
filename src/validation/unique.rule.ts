@@ -4,7 +4,7 @@ import {
   ValidatorConstraint,
   ValidatorConstraintInterface,
 } from 'class-validator';
-import {IsUniqueType} from '../definition/type';
+import {IsUniqueType} from '../common/type';
 import {EntityManager} from 'typeorm';
 
 @ValidatorConstraint({name: 'IsUniqueConstraint', async: true})
@@ -18,9 +18,7 @@ export class IsUniqueConstraint implements ValidatorConstraintInterface {
     // check unique from database
     const dataExist = await this.entityManager
       .getRepository(tableName)
-      .createQueryBuilder(tableName)
-      .where({[column]: value})
-      .getExists();
+      .findOne({where: {[column]: value}});
 
     return !dataExist;
   }

@@ -1,6 +1,6 @@
 import {registerDecorator, ValidationOptions} from 'class-validator';
-import {IsUniqueType} from '../definition/type';
-import {IsUniqueConstraint} from '../validation/unique.rule';
+import {IsUniqueType} from '../../../common/type';
+import {IsUniqueConstraint} from '../../../validation/unique.rule';
 
 // decorator function
 export function IsUnique(options: IsUniqueType, validationOptions?: ValidationOptions) {
