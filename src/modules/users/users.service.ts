@@ -4,7 +4,6 @@ import {InjectRepository} from '@nestjs/typeorm';
 import {User} from './entities/user.entity';
 import {InformUserDTO} from './dto/inform-user.dto';
 import {UpdateUserDto} from './dto/update-user.dto';
-import {ObjectId} from 'mongodb';
 import {SearchUserDTO} from './dto/search-user.dto';
 import {ITEM_PER_PAGE} from 'src/common/const';
 import {IObject, IResponseCommon} from 'src/common/interfaces';
@@ -30,16 +29,16 @@ export class UsersService {
     return {result: users, meta: {total, page}};
   }
 
-  async detail(id: ObjectId) {
-    return await this.userRepository.findOne({where: {id}});
+  async detail(id: any) {
+    return await this.userRepository.findOne(id);
   }
 
-  async update(id: ObjectId, updateUserDto: UpdateUserDto): Promise<InformUserDTO> {
+  async update(id: any, updateUserDto: UpdateUserDto): Promise<InformUserDTO> {
     await this.userRepository.update(id, updateUserDto);
     return this.userRepository.findOne({where: {id}});
   }
 
-  async remove(id: ObjectId) {
+  async remove(id: any) {
     await this.userRepository.delete(id);
   }
 }

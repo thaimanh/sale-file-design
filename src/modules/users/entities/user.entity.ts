@@ -39,9 +39,9 @@ export class User {
   birthday: string;
 
   @IsNotEmpty()
-  @IsInt({message: 'Role is number'})
+  @IsString()
   @Column()
-  role: number;
+  role: string;
 
   @IsInt({message: 'Point is number'})
   @Column({default: 0})

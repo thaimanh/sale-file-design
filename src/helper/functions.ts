@@ -1,28 +1,26 @@
 import express from 'express';
 import {IObject} from '../common/interfaces';
-import crypto from 'crypto';
+import * as bcrypt from 'bcrypt';
+
+const SALT_ROUND = 5;
 
 export const addZero = (item: string | number, length: number) => {
   return item.toString().padStart(length, '0');
 };
 
-export const hashMd5 = (str: string, salt?: string): string => {
-  return crypto
-    .createHash('md5')
-    .update(String(str || '') + String(salt || ''))
-    .digest('hex');
+export const hashMd5 = (str: string) => {
+  return bcrypt.hash(str, SALT_ROUND);
 };
 
 /**
  *
  * @param {string} str
  * @param {string} strHash
- * @param {string} salt
  * @returns {boolean}
  */
-export const compareHash = (str: string = '', strHash: string = '', salt?: string): boolean => {
-  const hashed = hashMd5(str, salt);
-  return hashed === strHash;
+export const compareHash = (str: string = '', strHash: string = '') => {
+  const result = bcrypt.compareSync(str, strHash);
+  return result;
 };
 
 export const wait = (millisecond: number) =>

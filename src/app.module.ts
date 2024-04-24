@@ -8,7 +8,7 @@ import {IsUniqueConstraint} from './validation/unique.rule';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({isGlobal: true}),
+    ConfigModule.forRoot(),
     AuthModule,
     UsersModule,
     TypeOrmModule.forRoot({

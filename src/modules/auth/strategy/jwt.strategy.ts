@@ -5,6 +5,7 @@ import {InjectRepository} from '@nestjs/typeorm';
 import {Strategy, ExtractJwt} from 'passport-jwt';
 import {User} from 'src/modules/users/entities/user.entity';
 import {Repository} from 'typeorm';
+import {Request} from 'express';
 
 @Injectable()
 export class JWTStrategy extends PassportStrategy(Strategy) {
@@ -13,17 +14,21 @@ export class JWTStrategy extends PassportStrategy(Strategy) {
     @InjectRepository(User) private userRepository: Repository<User>,
   ) {
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      ignoreExpiration: false,
+      jwtFromRequest: ExtractJwt.fromExtractors([JWTStrategy.extractJWT]),
       secretOrKey: configService.get('JWT_SECRET_KEY'),
     });
   }
 
+  private static extractJWT(req: Request): string | null {
+    if (req.cookies && 'accessToken' in req.cookies) {
+      return req.cookies.accessToken;
+    }
+    return null;
+  }
+
   async validate(payload: any) {
-    console.log('Inside validate token', payload);
-    // validate token here
-    const user = await this.userRepository.findOne({where: {id: payload.sub}});
+    const user = await this.userRepository.findOne();
     console.log(user);
-    return {userId: payload.sub, username: payload.username};
+    return {userId: payload.id, email: payload.email};
   }
 }

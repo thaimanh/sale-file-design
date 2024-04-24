@@ -1,32 +1,32 @@
-import {Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe} from '@nestjs/common';
+import {Controller, Get, Body, Patch, Param, Delete, UseGuards, Req} from '@nestjs/common';
 import {UsersService} from './users.service';
 import {UpdateUserDto} from './dto/update-user.dto';
-import {ObjectId} from 'typeorm';
 import {SearchUserDTO} from './dto/search-user.dto';
-import {Role} from '../../common/interfaces';
-import {Roles} from '../auth/decorator/roles.decorator';
+import {JWTGuard} from '../auth/guard';
+import {Request} from '@nestjs/common';
 
-@Controller('users')
+@Controller('user')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @UseGuards(JWTGuard)
   @Get()
   search(@Body('name') searchUserDTO: SearchUserDTO) {
     return this.usersService.search(searchUserDTO);
   }
 
   @Get(':id')
-  getDetail(@Param('id', ParseIntPipe) id: ObjectId) {
+  getDetail(@Param('id') id: string) {
     return this.usersService.detail(id);
   }
 
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: ObjectId, @Body() updateUserDto: UpdateUserDto) {
+  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(id, updateUserDto);
   }
 
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: ObjectId) {
+  remove(@Param('id') id: string) {
     return this.usersService.remove(id);
   }
 }

@@ -27,6 +27,10 @@ export class RegisterUserDto {
   birthday: string;
 
   @IsNotEmpty()
-  @IsInt({message: 'Role is number'})
-  role: number;
+  @IsString()
+  role: string;
+
+  @IsNotEmpty()
+  @IsInt()
+  point: number;
 }

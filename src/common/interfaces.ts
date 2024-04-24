@@ -14,7 +14,4 @@ export interface IResponseStatus {
   result: boolean;
 }
 
-export enum Role {
-  User = 'user',
-  Admin = 'admin',
-}
+
