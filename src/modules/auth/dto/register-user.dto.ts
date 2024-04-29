@@ -1,4 +1,4 @@
-import {IsInt, IsEmail, IsString, IsNotEmpty, MinLength} from 'class-validator';
+import {IsInt, IsEmail, IsString, IsNotEmpty, MinLength, IsArray} from 'class-validator';
 import {IsUnique} from '../decorator/isUnique.decorator';
 
 export class RegisterUserDto {
@@ -27,8 +27,8 @@ export class RegisterUserDto {
   birthday: string;
 
   @IsNotEmpty()
-  @IsString()
-  role: string;
+  @IsArray()
+  roles: string[];
 
   @IsNotEmpty()
   @IsInt()

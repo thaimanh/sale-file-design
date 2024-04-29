@@ -8,7 +8,6 @@ import {IResponseStatus} from '../../common/interfaces';
 import {JwtService} from '@nestjs/jwt';
 import {ConfigService} from '@nestjs/config';
 import {Response} from 'express';
-import {TokenUserDto} from './dto/token-user.dto';
 
 @Injectable()
 export class AuthService {
@@ -55,7 +54,7 @@ export class AuthService {
     const accessToken = await this.genAccessToken(user);
     response.cookie('accessToken', accessToken, {httpOnly: true});
 
-    return response.send({result: {id: user.id, email: user.email, fullName: user.fullName}});
+    return response.send({result: {id: user._id, email: user.email, fullName: user.fullName}});
   }
 
   async logout(userId: string, response: Response) {
@@ -70,9 +69,14 @@ export class AuthService {
     }
   }
 
+  async verifyEmail(): Promise<boolean> {
+    return true;
+  }
+
   async genAccessToken(data: any): Promise<string> {
-    const {id, email} = data;
-    const payload = {id, email};
+    const {_id, email} = data;
+
+    const payload = {id: _id, email};
 
     try {
       const accessToken = await this.jwtService.signAsync(payload, {
@@ -80,7 +84,7 @@ export class AuthService {
         expiresIn: this.configService.get<string>('JWT_EXPIRE_IN'),
       });
 
-      await this.userRepository.update(id, {accessToken: accessToken});
+      await this.userRepository.update(_id, {accessToken: accessToken});
 
       return accessToken;
     } catch (error) {

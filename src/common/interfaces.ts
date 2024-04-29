@@ -13,5 +13,3 @@ export interface IResponseCommon<ResultType> {
 export interface IResponseStatus {
   result: boolean;
 }
-
-

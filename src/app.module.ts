@@ -5,6 +5,9 @@ import {TypeOrmModule} from '@nestjs/typeorm';
 import {User} from './modules/users/entities/user.entity';
 import {ConfigModule} from '@nestjs/config';
 import {IsUniqueConstraint} from './validation/unique.rule';
+import {APP_GUARD} from '@nestjs/core';
+import {RolesGuard} from './modules/auth/guard/roles.guard';
+import {JWTGuard} from './modules/auth/guard';
 
 @Module({
   imports: [
@@ -23,6 +26,10 @@ import {IsUniqueConstraint} from './validation/unique.rule';
     }),
   ],
   controllers: [],
-  providers: [IsUniqueConstraint],
+  providers: [
+    IsUniqueConstraint,
+    {provide: APP_GUARD, useClass: JWTGuard},
+    {provide: APP_GUARD, useClass: RolesGuard},
+  ],
 })
 export class AppModule {}

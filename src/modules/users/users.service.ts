@@ -1,5 +1,5 @@
 import {Injectable} from '@nestjs/common';
-import {Like, Repository} from 'typeorm';
+import {Like, MongoRepository} from 'typeorm';
 import {InjectRepository} from '@nestjs/typeorm';
 import {User} from './entities/user.entity';
 import {InformUserDTO} from './dto/inform-user.dto';
@@ -11,7 +11,7 @@ import {objValidateKey} from '../../helper/functions';
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectRepository(User) private userRepository: Repository<User>) {}
+  constructor(@InjectRepository(User) private userRepository: MongoRepository<User>) {}
 
   async search(searchUserDTO: SearchUserDTO): Promise<IResponseCommon<InformUserDTO[]>> {
     const {keyword, sortKey, order, page} = searchUserDTO || {};

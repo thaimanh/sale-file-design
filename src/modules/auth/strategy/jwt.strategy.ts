@@ -6,6 +6,7 @@ import {Strategy, ExtractJwt} from 'passport-jwt';
 import {User} from 'src/modules/users/entities/user.entity';
 import {Repository} from 'typeorm';
 import {Request} from 'express';
+import {ObjectId} from 'mongodb';
 
 @Injectable()
 export class JWTStrategy extends PassportStrategy(Strategy) {
@@ -16,6 +17,7 @@ export class JWTStrategy extends PassportStrategy(Strategy) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([JWTStrategy.extractJWT]),
       secretOrKey: configService.get('JWT_SECRET_KEY'),
+      passReqToCallback: true,
     });
   }
 
@@ -26,9 +28,20 @@ export class JWTStrategy extends PassportStrategy(Strategy) {
     return null;
   }
 
-  async validate(payload: any) {
-    const user = await this.userRepository.findOne();
-    console.log(user);
-    return {userId: payload.id, email: payload.email};
+  async validate(req: Request, payload: any) {
+    const accessToken = req.cookies.accessToken;
+
+    const user = await this.userRepository.findOne({
+      where: {
+        _id: new ObjectId(payload.id),
+        accessToken: accessToken,
+      },
+    });
+
+    if (!user) {
+      return false;
+    }
+
+    return {id: payload.id, email: payload.email, roles: user.roles};
   }
 }

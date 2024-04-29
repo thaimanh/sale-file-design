@@ -1,12 +1,12 @@
 import {Column, Entity, ObjectId, ObjectIdColumn} from 'typeorm';
-import {IsInt, IsEmail, IsString, IsNotEmpty, MinLength} from 'class-validator';
+import {IsInt, IsEmail, IsString, IsNotEmpty, MinLength, IsArray} from 'class-validator';
 import {IsUnique} from '../../auth/decorator/isUnique.decorator';
 
 @Entity()
 export class User {
   @IsNotEmpty()
   @ObjectIdColumn()
-  id: ObjectId;
+  _id: ObjectId;
 
   @IsNotEmpty()
   @IsUnique({tableName: 'User', column: 'email'})
@@ -39,9 +39,9 @@ export class User {
   birthday: string;
 
   @IsNotEmpty()
-  @IsString()
+  @IsArray()
   @Column()
-  role: string;
+  roles: string[];
 
   @IsInt({message: 'Point is number'})
   @Column({default: 0})
@@ -49,6 +49,9 @@ export class User {
 
   @Column({default: ''})
   accessToken: string;
+
+  @Column({default: {}})
+  otp: string;
 
   @Column({type: 'timestamp', default: () => 'CURRENT_TIMESTAMP'})
   createdAt: Date;
