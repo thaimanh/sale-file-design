@@ -7,3 +7,8 @@ export enum Role {
   User = 'user',
   Admin = 'admin',
 }
+
+export enum Status {
+  INVALID = 0,
+  VALID = 1,
+}

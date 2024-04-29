@@ -1,7 +1,15 @@
 import {Column, Entity, ObjectId, ObjectIdColumn} from 'typeorm';
-import {IsInt, IsEmail, IsString, IsNotEmpty, MinLength, IsArray} from 'class-validator';
+import {IsInt, IsEmail, IsString, IsNotEmpty, MinLength, IsArray, IsEnum} from 'class-validator';
 import {IsUnique} from '../../auth/decorator/isUnique.decorator';
+import {Status} from 'src/common/const';
 
+export class OtpDto {
+  @IsString()
+  otp: string;
+  @IsEnum(Status)
+  status: number;
+  expiresAt: Date;
+}
 @Entity()
 export class User {
   @IsNotEmpty()
@@ -50,8 +58,8 @@ export class User {
   @Column({default: ''})
   accessToken: string;
 
-  @Column({default: {}})
-  otp: string;
+  @Column(() => OtpDto)
+  otp: OtpDto;
 
   @Column({type: 'timestamp', default: () => 'CURRENT_TIMESTAMP'})
   createdAt: Date;

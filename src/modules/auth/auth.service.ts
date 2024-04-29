@@ -69,10 +69,6 @@ export class AuthService {
     }
   }
 
-  async verifyEmail(): Promise<boolean> {
-    return true;
-  }
-
   async genAccessToken(data: any): Promise<string> {
     const {_id, email} = data;
 
