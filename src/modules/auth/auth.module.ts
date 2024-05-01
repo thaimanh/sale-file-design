@@ -12,7 +12,12 @@ import {MailerModule} from '@nestjs-modules/mailer';
   imports: [
     TypeOrmModule.forFeature([User]),
     ConfigModule,
-    JwtModule.register({}),
+    JwtModule.register({
+      secret: process.env.JWT_SECRET_KEY,
+      signOptions: {
+        expiresIn: process.env.JWT_EXPIRE_IN,
+      },
+    }),
     MailerModule.forRoot({
       transport: {
         host: 'smtp.gmail.com',

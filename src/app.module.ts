@@ -8,10 +8,11 @@ import {IsUniqueConstraint} from './validation/unique.rule';
 import {APP_GUARD} from '@nestjs/core';
 import {RolesGuard} from './modules/auth/guard/roles.guard';
 import {JWTGuard} from './modules/auth/guard';
+import {MailModule} from './modules/mail/mail.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({isGlobal: true}),
     AuthModule,
     UsersModule,
     TypeOrmModule.forRoot({
@@ -24,6 +25,7 @@ import {JWTGuard} from './modules/auth/guard';
       useUnifiedTopology: true,
       useNewUrlParser: true,
     }),
+    MailModule,
   ],
   controllers: [],
   providers: [

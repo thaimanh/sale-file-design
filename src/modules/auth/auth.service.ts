@@ -1,10 +1,10 @@
 import {HttpException, HttpStatus, Injectable} from '@nestjs/common';
 import {Repository} from 'typeorm';
-import {User} from '../users/entities/user.entity';
+import {User} from '~/modules/users/entities/user.entity';
 import {InjectRepository} from '@nestjs/typeorm';
 import {RegisterUserDto, LoginUserDTO} from './dto';
-import {compareHash, hashMd5} from '../../helper/functions';
-import {IResponseStatus} from '../../common/interfaces';
+import {compareHash, hashMd5} from '~/helper/functions';
+import {IResponseStatus} from '~/common/interfaces';
 import {JwtService} from '@nestjs/jwt';
 import {ConfigService} from '@nestjs/config';
 import {Response} from 'express';
