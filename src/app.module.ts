@@ -9,12 +9,14 @@ import {APP_GUARD} from '@nestjs/core';
 import {RolesGuard} from './modules/auth/guard/roles.guard';
 import {JWTGuard} from './modules/auth/guard';
 import {MailModule} from './modules/mail/mail.module';
+import {LoggerModule} from './modules/logger/logger.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({isGlobal: true}),
     AuthModule,
     UsersModule,
+    LoggerModule,
     TypeOrmModule.forRoot({
       type: 'mongodb',
       host: process.env.DATABASE_HOST,
@@ -26,6 +28,7 @@ import {MailModule} from './modules/mail/mail.module';
       useNewUrlParser: true,
     }),
     MailModule,
+    LoggerModule,
   ],
   controllers: [],
   providers: [

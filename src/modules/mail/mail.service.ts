@@ -6,8 +6,8 @@ import {MailDto} from './dto/mail.dto';
 export class MailService {
   constructor(private mailerService: MailerService) {}
 
-  async sendMail(data: MailDto) {
-    const {to, subject, cc, bcc, replyTo, inReplyTo, template, context} = data;
+  async sendMail(msg: MailDto) {
+    const {to, subject, cc, bcc, replyTo, inReplyTo, template, context} = msg;
 
     await this.mailerService.sendMail({
       to: to,
@@ -16,7 +16,7 @@ export class MailService {
       replyTo: replyTo,
       inReplyTo: inReplyTo,
       subject: subject,
-      template: `./${template}`,
+      template: `./template/${template}`,
       context: context,
     });
   }

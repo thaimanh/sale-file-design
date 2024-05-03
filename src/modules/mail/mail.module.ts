@@ -1,11 +1,10 @@
 import {MailerModule} from '@nestjs-modules/mailer';
-import {Global, Module} from '@nestjs/common';
+import {Module} from '@nestjs/common';
 import {HandlebarsAdapter} from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import {MailService} from './mail.service';
 import {join} from 'path';
 import {ConfigService} from '@nestjs/config';
 
-@Global()
 @Module({
   imports: [
     MailerModule.forRootAsync({
@@ -14,8 +13,8 @@ import {ConfigService} from '@nestjs/config';
           host: config.get('MAIL_HOST'),
           secure: false,
           auth: {
-            user: 'thaikhacmanh1998@gmail.com',
-            pass: 'rypm yfkc vteg xbui',
+            user: config.get('MAIL_USER'),
+            pass: config.get('MAIL_PASSWORD'),
           },
         },
         defaults: {

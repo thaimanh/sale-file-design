@@ -6,8 +6,11 @@ import {RegisterUserDto, LoginUserDTO} from './dto';
 import {compareHash, hashMd5} from '~/helper/functions';
 import {IResponseStatus} from '~/common/interfaces';
 import {JwtService} from '@nestjs/jwt';
+import randomString from 'randomstring';
 import {ConfigService} from '@nestjs/config';
 import {Response} from 'express';
+import {MailService} from '../mail/mail.service';
+import {MyLogger} from '../logger/logger.service';
 
 @Injectable()
 export class AuthService {
@@ -15,6 +18,8 @@ export class AuthService {
     @InjectRepository(User) private userRepository: Repository<User>,
     private configService: ConfigService,
     private jwtService: JwtService,
+    private mailService: MailService,
+    private logger: MyLogger,
   ) {}
 
   async register(registerUserDto: RegisterUserDto): Promise<IResponseStatus> {
@@ -29,7 +34,24 @@ export class AuthService {
         fullName: firstName + ' ' + lastName,
       });
 
-      await this.userRepository.save(newUser);
+      const userCreated = await this.userRepository.save(newUser);
+
+      // verify mail
+      if (userCreated) {
+        const otp = Math.random().toString(5).substring(2, 5);
+
+        await this.mailService.sendMail({
+          to: userCreated.email,
+          subject: 'Verify your email',
+          template: 'confirmation',
+          context: {
+            name: userCreated.fullName,
+            url: `${this.configService.get<string>('SERVER_HOST')}/verifyOtp?otp=${otp}`,
+          },
+        });
+
+        this.logger.log('Send message successfully');
+      }
 
       return {result: true};
     } catch (error) {
