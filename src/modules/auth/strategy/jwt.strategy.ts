@@ -1,18 +1,15 @@
 import {Injectable} from '@nestjs/common';
 import {ConfigService} from '@nestjs/config';
 import {PassportStrategy} from '@nestjs/passport';
-import {InjectRepository} from '@nestjs/typeorm';
 import {Strategy, ExtractJwt} from 'passport-jwt';
-import {User} from 'src/modules/users/entities/user.entity';
-import {Repository} from 'typeorm';
 import {Request} from 'express';
-import {ObjectId} from 'mongodb';
+import {UserService} from '~/modules/users/users.service';
 
 @Injectable()
 export class JWTStrategy extends PassportStrategy(Strategy) {
   constructor(
     configService: ConfigService,
-    @InjectRepository(User) private userRepository: Repository<User>,
+    private userService: UserService,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([JWTStrategy.extractJWT]),
@@ -31,17 +28,15 @@ export class JWTStrategy extends PassportStrategy(Strategy) {
   async validate(req: Request, payload: any) {
     const accessToken = req.cookies.accessToken;
 
-    const user = await this.userRepository.findOne({
-      where: {
-        _id: new ObjectId(payload.id),
-        accessToken: accessToken,
-      },
+    const {result: foundUser} = await this.userService.detail({
+      id: payload.id,
+      accessToken: accessToken,
     });
 
-    if (!user) {
+    if (!foundUser) {
       return false;
     }
 
-    return {id: payload.id, email: payload.email, roles: user.roles};
+    return {id: payload.id, email: payload.email, roles: foundUser.roles};
   }
 }

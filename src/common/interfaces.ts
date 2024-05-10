@@ -4,10 +4,12 @@ export interface IObject<T = unknown> {
 
 export interface IResponseCommon<ResultType> {
   result: ResultType;
-  meta?: {
-    total: number;
-    page: number;
-  };
+  meta?:
+    | {
+        total: number;
+        page: number;
+      }
+    | any;
 }
 
 export interface IResponseStatus {

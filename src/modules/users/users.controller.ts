@@ -1,5 +1,5 @@
 import {Controller, Get, Body, Patch, Param, Delete} from '@nestjs/common';
-import {UsersService} from './users.service';
+import {UserService} from './users.service';
 import {UpdateUserDto} from './dto/update-user.dto';
 import {SearchUserDTO} from './dto/search-user.dto';
 import {Roles} from '../auth/decorator';
@@ -7,7 +7,7 @@ import {Role} from '../../common/const';
 
 @Controller('user')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private usersService: UserService) {}
 
   @Roles(Role.Admin)
   @Get()
@@ -18,7 +18,7 @@ export class UsersController {
   @Roles(Role.Admin, Role.User)
   @Get(':id')
   getDetail(@Param('id') id: string) {
-    return this.usersService.detail(id);
+    return this.usersService.detail({id});
   }
 
   @Roles(Role.Admin, Role.User)

@@ -23,6 +23,10 @@ export const compareHash = (str: string = '', strHash: string = '') => {
   return result;
 };
 
+export const escapeRegExp = (text: string) => {
+  return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+};
+
 export const wait = (millisecond: number) =>
   new Promise((resolve) => setTimeout(resolve, millisecond));
 
@@ -110,4 +114,8 @@ export function downloadFileFromStream(res: express.Response, fileStream: any) {
     });
     fileStream.on('error', reject);
   });
+}
+
+export function isEmpty(source: IObject) {
+  return Object.keys(source).length === 0;
 }

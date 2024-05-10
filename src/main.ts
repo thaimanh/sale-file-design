@@ -3,11 +3,17 @@ import {AppModule} from './app.module';
 import {ValidationPipe} from '@nestjs/common';
 import {useContainer} from 'class-validator';
 import * as cookieParser from 'cookie-parser';
+import {SystemLogger} from './modules/logger/logger.service';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    bufferLogs: true,
+  });
   // wrap AppModule with UseContainer
   useContainer(app.select(AppModule), {fallbackOnErrors: true});
+
+  // app use custom logger
+  app.useLogger(app.get(SystemLogger));
 
   // app use global pipes to automatically validate requests
   app.useGlobalPipes(

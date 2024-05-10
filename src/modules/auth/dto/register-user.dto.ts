@@ -1,9 +1,7 @@
 import {IsInt, IsEmail, IsString, IsNotEmpty, MinLength, IsArray} from 'class-validator';
-import {IsUnique} from '../decorator/isUnique.decorator';
 
 export class RegisterUserDto {
   @IsNotEmpty()
-  @IsUnique({tableName: 'User', column: 'email'})
   @IsEmail(undefined, {message: 'Email is invalid'})
   email: string;
 

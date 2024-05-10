@@ -1,26 +1,31 @@
 import {HttpException, HttpStatus, Injectable} from '@nestjs/common';
-import {Repository} from 'typeorm';
-import {User} from '~/modules/users/entities/user.entity';
-import {InjectRepository} from '@nestjs/typeorm';
-import {RegisterUserDto, LoginUserDTO} from './dto';
+import {User} from '~/modules/users/schema/user.schema';
+import {RegisterUserDto, LoginUserDTO} from '../dto';
 import {compareHash, hashMd5} from '~/helper/functions';
 import {IResponseStatus} from '~/common/interfaces';
 import {JwtService} from '@nestjs/jwt';
-import randomString from 'randomstring';
 import {ConfigService} from '@nestjs/config';
 import {Response} from 'express';
-import {MailService} from '../mail/mail.service';
-import {MyLogger} from '../logger/logger.service';
+import {MailService} from '../../mail/mail.service';
+import {SystemLogger} from '../../logger/logger.service';
+import {OtpService} from '../service';
+import {InjectModel} from '@nestjs/mongoose';
+import {Model} from 'mongoose';
+import {UserService} from '~/modules/users/users.service';
 
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectRepository(User) private userRepository: Repository<User>,
+    @InjectModel(User.name) private userModel: Model<User>,
     private configService: ConfigService,
+    private userService: UserService,
     private jwtService: JwtService,
     private mailService: MailService,
-    private logger: MyLogger,
-  ) {}
+    private otpService: OtpService,
+    private logger: SystemLogger,
+  ) {
+    this.logger.setContext(AuthService.name);
+  }
 
   async register(registerUserDto: RegisterUserDto): Promise<IResponseStatus> {
     const {lastName, firstName, password} = registerUserDto || {};
@@ -28,34 +33,36 @@ export class AuthService {
     const hashPassword = await hashMd5(password);
 
     try {
-      const newUser = this.userRepository.create({
+      const newUser = new this.userModel({
         ...registerUserDto,
         password: hashPassword,
         fullName: firstName + ' ' + lastName,
       });
 
-      const userCreated = await this.userRepository.save(newUser);
+      const savedUser = await newUser.save();
 
-      // verify mail
-      if (userCreated) {
-        const otp = Math.random().toString(5).substring(2, 5);
+      if (savedUser) {
+        // Send mail
+        const otp = this.otpService.newOtp(newUser._id);
 
-        await this.mailService.sendMail({
-          to: userCreated.email,
-          subject: 'Verify your email',
-          template: 'confirmation',
-          context: {
-            name: userCreated.fullName,
-            url: `${this.configService.get<string>('SERVER_HOST')}/verifyOtp?otp=${otp}`,
-          },
-        });
-
-        this.logger.log('Send message successfully');
+        this.mailService
+          .sendMail({
+            to: newUser.email,
+            subject: 'Verify your email',
+            template: 'confirmation',
+            context: {
+              name: newUser.fullName,
+              url: `${this.configService.get<string>('SERVER_HOST')}/verifyOtp?otp=${otp}`,
+            },
+          })
+          .then(({response}) => {
+            response.includes('OK') &&
+              this.logger.log(`Send mail to ${newUser.email} successfully`);
+          });
       }
 
       return {result: true};
     } catch (error) {
-      console.error(error);
       throw new HttpException(`Register user error: ${error}`, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
@@ -63,25 +70,27 @@ export class AuthService {
   async login(loginUserDto: LoginUserDTO, response: Response) {
     const {email, password} = loginUserDto || {};
 
-    const user = await this.userRepository.findOne({where: {email: email}});
+    const {result: foundUser} = await this.userService.detail({email});
 
-    if (!user) {
+    if (!foundUser) {
       throw new HttpException('Wrong credentials', HttpStatus.BAD_REQUEST);
     }
 
-    if (!compareHash(password, user.password)) {
+    if (!compareHash(password, foundUser.password)) {
       throw new HttpException('Wrong credentials', HttpStatus.BAD_REQUEST);
     }
 
-    const accessToken = await this.genAccessToken(user);
+    const accessToken = await this.genAccessToken(foundUser);
     response.cookie('accessToken', accessToken, {httpOnly: true});
 
-    return response.send({result: {id: user._id, email: user.email, fullName: user.fullName}});
+    return response.send({
+      result: {id: foundUser._id, email: foundUser.email, fullName: foundUser.fullName},
+    });
   }
 
   async logout(userId: string, response: Response) {
     try {
-      await this.userRepository.update(userId, {accessToken: null});
+      await this.userService.update(userId, {accessToken: null});
 
       response.clearCookie('accessToken');
 
@@ -90,6 +99,10 @@ export class AuthService {
       throw new HttpException('Error revoke token', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
+
+  // async verifyOtp(params: {userId: string; otp: string}) {
+  //   return true;
+  // }
 
   async genAccessToken(data: any): Promise<string> {
     const {_id, email} = data;
@@ -102,7 +115,7 @@ export class AuthService {
         expiresIn: this.configService.get<string>('JWT_EXPIRE_IN'),
       });
 
-      await this.userRepository.update(_id, {accessToken: accessToken});
+      await this.userService.update(_id, {accessToken: accessToken});
 
       return accessToken;
     } catch (error) {

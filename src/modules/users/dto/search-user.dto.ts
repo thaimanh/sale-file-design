@@ -1,12 +1,12 @@
-import {IsNumber, IsString} from 'class-validator';
+import {IsInt, IsNumber, IsString} from 'class-validator';
 
 export class SearchUserDTO {
   @IsString()
   keyword: string;
   @IsNumber()
   page: number;
-  @IsString()
-  order: string;
+  @IsInt()
+  order: number;
   @IsString()
   sortKey: string;
 }

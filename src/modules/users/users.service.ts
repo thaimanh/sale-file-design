@@ -1,44 +1,84 @@
-import {Injectable} from '@nestjs/common';
-import {Like, MongoRepository} from 'typeorm';
-import {InjectRepository} from '@nestjs/typeorm';
-import {User} from './entities/user.entity';
-import {InformUserDTO} from './dto/inform-user.dto';
-import {UpdateUserDto} from './dto/update-user.dto';
-import {SearchUserDTO} from './dto/search-user.dto';
+import {HttpException, HttpStatus, Injectable} from '@nestjs/common';
+import {User} from './schema/user.schema';
+import {InformUserDTO, UpdateUserDto, SearchUserDTO} from './dto';
 import {ITEM_PER_PAGE} from 'src/common/const';
-import {IObject, IResponseCommon} from 'src/common/interfaces';
-import {objValidateKey} from '../../helper/functions';
+import {IObject, IResponseCommon, IResponseStatus} from '~/common/interfaces';
+import {Model, SortOrder} from 'mongoose';
+import {InjectModel} from '@nestjs/mongoose';
+import {objFilterKeys, objValidateKey, escapeRegExp} from '~/helper/functions';
+import {keys} from 'ts-transformer-keys';
+import {DetailUserDTO} from './dto/detail-user.dto';
 
 @Injectable()
-export class UsersService {
-  constructor(@InjectRepository(User) private userRepository: MongoRepository<User>) {}
+export class UserService {
+  constructor(@InjectModel(User.name) private userModel: Model<User>) {}
 
   async search(searchUserDTO: SearchUserDTO): Promise<IResponseCommon<InformUserDTO[]>> {
     const {keyword, sortKey, order, page} = searchUserDTO || {};
 
-    const conditions: IObject = {
-      where: keyword && {fullName: Like(`%${keyword}%`)},
-      order: sortKey ? {[sortKey]: order} : {createdAt: 'desc'},
-      skip: page && (page - 1) * ITEM_PER_PAGE,
-      take: ITEM_PER_PAGE,
-      select: ['id', 'email', 'firstName', 'lastName', 'role', 'createdAt', 'updatedAt'],
+    // const conditions: IObject = {
+    //   where: keyword && {fullName: Like(`%${keyword}%`)},
+    //   order: sortKey ? {[sortKey]: order} : {createdAt: 'desc'},
+    //   skip: page && (page - 1) * ITEM_PER_PAGE,
+    //   take: ITEM_PER_PAGE,
+    //   select: ['id', 'email', 'firstName', 'lastName', 'role', 'createdAt', 'updatedAt'],
+    // };
+
+    const $regex = escapeRegExp(keyword);
+    const query = keyword ? this.userModel.find({fullName: $regex}) : this.userModel.find();
+
+    if (sortKey) {
+      query.sort({[sortKey]: order} as IObject<SortOrder>);
+    }
+
+    if (page) {
+      query.skip((page - 1) * ITEM_PER_PAGE).limit(ITEM_PER_PAGE);
+    }
+
+    const searchUser = await query.lean();
+
+    return {result: searchUser, meta: {total: searchUser?.length ?? 0, page}};
+  }
+
+  async display(id: string): Promise<IResponseCommon<InformUserDTO>> {
+    const detailUser: InformUserDTO = await this.userModel.findById(id).lean();
+
+    return {
+      result: objFilterKeys(detailUser, keys<InformUserDTO>()) as InformUserDTO,
+      meta: {},
     };
-
-    const [users, total] = await this.userRepository.findAndCount(objValidateKey(conditions));
-
-    return {result: users, meta: {total, page}};
   }
 
-  async detail(id: any) {
-    return await this.userRepository.findOne(id);
+  async detail(conditions: IObject<any>): Promise<IResponseCommon<DetailUserDTO>> {
+    const detailUser = await this.userModel.findOne(objValidateKey(conditions)).lean();
+
+    return {
+      result: detailUser,
+      meta: {},
+    };
   }
 
-  async update(id: any, updateUserDto: UpdateUserDto): Promise<InformUserDTO> {
-    await this.userRepository.update(id, updateUserDto);
-    return this.userRepository.findOne({where: {id}});
+  async update(id: string, updateUserDto: Partial<UpdateUserDto>): Promise<IResponseStatus> {
+    const updateUser = await this.userModel.findByIdAndUpdate(id, updateUserDto, {new: true});
+
+    if (!updateUser) {
+      throw new HttpException(`Not found user ${id}`, HttpStatus.NOT_FOUND);
+    }
+
+    return {
+      result: true,
+    };
   }
 
-  async remove(id: any) {
-    await this.userRepository.delete(id);
+  async remove(id: string) {
+    const deleteUser = await this.userModel.findByIdAndDelete(id);
+
+    if (!deleteUser) {
+      throw new HttpException(`Not found user ${id}`, HttpStatus.NOT_FOUND);
+    }
+
+    return {
+      result: true,
+    };
   }
 }

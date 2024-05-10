@@ -8,8 +8,7 @@ export class MailService {
 
   async sendMail(msg: MailDto) {
     const {to, subject, cc, bcc, replyTo, inReplyTo, template, context} = msg;
-
-    await this.mailerService.sendMail({
+    return this.mailerService.sendMail({
       to: to,
       cc: cc,
       bcc: bcc,
