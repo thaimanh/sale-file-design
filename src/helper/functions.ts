@@ -23,7 +23,10 @@ export const compareHash = (str: string = '', strHash: string = '') => {
   return result;
 };
 
+export const keys = () => {};
+
 export const escapeRegExp = (text: string) => {
+  if (!text) return null;
   return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
 };
 

@@ -1,6 +1,6 @@
-import {NestFactory} from '@nestjs/core';
+import {NestFactory, Reflector} from '@nestjs/core';
 import {AppModule} from './app.module';
-import {ValidationPipe} from '@nestjs/common';
+import {ClassSerializerInterceptor, ValidationPipe} from '@nestjs/common';
 import {useContainer} from 'class-validator';
 import * as cookieParser from 'cookie-parser';
 import {SystemLogger} from './modules/logger/logger.service';
@@ -22,6 +22,8 @@ async function bootstrap() {
       skipMissingProperties: true,
     }),
   );
+
+  // app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
   // initialization cookie
   app.use(cookieParser());

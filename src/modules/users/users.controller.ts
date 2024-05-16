@@ -1,4 +1,13 @@
-import {Controller, Get, Body, Patch, Param, Delete} from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseInterceptors,
+  ClassSerializerInterceptor,
+} from '@nestjs/common';
 import {UserService} from './users.service';
 import {UpdateUserDto} from './dto/update-user.dto';
 import {SearchUserDTO} from './dto/search-user.dto';
@@ -16,9 +25,10 @@ export class UsersController {
   }
 
   @Roles(Role.Admin, Role.User)
+  @UseInterceptors(ClassSerializerInterceptor)
   @Get(':id')
   getDetail(@Param('id') id: string) {
-    return this.usersService.detail({id});
+    return this.usersService.displayById(id);
   }
 
   @Roles(Role.Admin, Role.User)

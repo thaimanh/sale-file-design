@@ -1,9 +1,8 @@
-import {Body, Controller, Post, Req, Res, UseGuards} from '@nestjs/common';
+import {Body, Controller, Post, Req, Res} from '@nestjs/common';
 import {AuthService} from './service/auth.service';
 import {RegisterUserDto, LoginUserDTO} from '../auth/dto';
 import {IResponseStatus} from '../../common/interfaces';
 import {Response} from 'express';
-import {JWTStrategy} from './strategy';
 import {Public} from './decorator';
 
 @Controller('/auth')
@@ -22,7 +21,6 @@ export class AuthController {
     return this.authService.login(loginUserDto, response);
   }
 
-  @UseGuards(JWTStrategy)
   @Post('/logout')
   logout(@Res() response: Response, @Req() request: any) {
     const userId = request.user.id;

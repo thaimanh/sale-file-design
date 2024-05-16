@@ -1,12 +1,11 @@
 import {HttpException, HttpStatus, Injectable} from '@nestjs/common';
 import {User} from './schema/user.schema';
 import {InformUserDTO, UpdateUserDto, SearchUserDTO} from './dto';
-import {ITEM_PER_PAGE} from 'src/common/const';
+import {ITEM_PER_PAGE, Role} from 'src/common/const';
 import {IObject, IResponseCommon, IResponseStatus} from '~/common/interfaces';
 import {Model, SortOrder} from 'mongoose';
 import {InjectModel} from '@nestjs/mongoose';
-import {objFilterKeys, objValidateKey, escapeRegExp} from '~/helper/functions';
-import {keys} from 'ts-transformer-keys';
+import {objValidateKey, escapeRegExp} from '~/helper/functions';
 import {DetailUserDTO} from './dto/detail-user.dto';
 
 @Injectable()
@@ -16,16 +15,10 @@ export class UserService {
   async search(searchUserDTO: SearchUserDTO): Promise<IResponseCommon<InformUserDTO[]>> {
     const {keyword, sortKey, order, page} = searchUserDTO || {};
 
-    // const conditions: IObject = {
-    //   where: keyword && {fullName: Like(`%${keyword}%`)},
-    //   order: sortKey ? {[sortKey]: order} : {createdAt: 'desc'},
-    //   skip: page && (page - 1) * ITEM_PER_PAGE,
-    //   take: ITEM_PER_PAGE,
-    //   select: ['id', 'email', 'firstName', 'lastName', 'role', 'createdAt', 'updatedAt'],
-    // };
-
     const $regex = escapeRegExp(keyword);
-    const query = keyword ? this.userModel.find({fullName: $regex}) : this.userModel.find();
+    const query = $regex
+      ? this.userModel.find({fullName: $regex, roles: Role.User})
+      : this.userModel.find();
 
     if (sortKey) {
       query.sort({[sortKey]: order} as IObject<SortOrder>);
@@ -37,14 +30,17 @@ export class UserService {
 
     const searchUser = await query.lean();
 
-    return {result: searchUser, meta: {total: searchUser?.length ?? 0, page}};
+    return {
+      result: searchUser,
+      meta: {total: searchUser?.length ?? 0, page},
+    };
   }
 
-  async display(id: string): Promise<IResponseCommon<InformUserDTO>> {
-    const detailUser: InformUserDTO = await this.userModel.findById(id).lean();
+  async displayById(id: string) {
+    const detailUser = await this.userModel.findById(id).lean();
 
     return {
-      result: objFilterKeys(detailUser, keys<InformUserDTO>()) as InformUserDTO,
+      result: detailUser,
       meta: {},
     };
   }

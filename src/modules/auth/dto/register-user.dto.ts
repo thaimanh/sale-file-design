@@ -1,4 +1,4 @@
-import {IsInt, IsEmail, IsString, IsNotEmpty, MinLength, IsArray} from 'class-validator';
+import {IsInt, IsEmail, IsString, IsNotEmpty, MinLength} from 'class-validator';
 
 export class RegisterUserDto {
   @IsNotEmpty()
@@ -25,8 +25,7 @@ export class RegisterUserDto {
   birthday: string;
 
   @IsNotEmpty()
-  @IsArray()
-  roles: string[];
+  roles: string;
 
   @IsNotEmpty()
   @IsInt()

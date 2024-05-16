@@ -29,7 +29,7 @@ export class JWTStrategy extends PassportStrategy(Strategy) {
     const accessToken = req.cookies.accessToken;
 
     const {result: foundUser} = await this.userService.detail({
-      id: payload.id,
+      _id: payload.id,
       accessToken: accessToken,
     });
 

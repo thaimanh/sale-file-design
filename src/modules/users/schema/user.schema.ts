@@ -1,4 +1,5 @@
 import {Prop, Schema, SchemaFactory} from '@nestjs/mongoose';
+import {Exclude} from 'class-transformer';
 import {Status} from '~/common/const';
 
 export class OtpDto {
@@ -8,10 +9,10 @@ export class OtpDto {
 }
 @Schema()
 export class User {
-  @Prop({required: true, unique: true})
+  @Prop({required: true})
   email: string;
 
-  @Prop({required: true})
+  @Prop({required: true, select: false})
   password: string;
 
   @Prop({required: true})
@@ -27,7 +28,7 @@ export class User {
   birthday: string;
 
   @Prop({required: true})
-  roles: string[];
+  roles: string;
 
   @Prop({required: true, default: 0})
   point: number;
@@ -46,6 +47,10 @@ export class User {
 
   @Prop({type: Date, default: Date.now})
   updatedAt: Date;
+
+  constructor(partial?: Partial<User>) {
+    if (partial) Object.assign(this, partial);
+  }
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
