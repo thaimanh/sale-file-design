@@ -1,6 +1,6 @@
-import {NestFactory, Reflector} from '@nestjs/core';
+import {NestFactory} from '@nestjs/core';
 import {AppModule} from './app.module';
-import {ClassSerializerInterceptor, ValidationPipe} from '@nestjs/common';
+import {ValidationPipe} from '@nestjs/common';
 import {useContainer} from 'class-validator';
 import * as cookieParser from 'cookie-parser';
 import {SystemLogger} from './modules/logger/logger.service';

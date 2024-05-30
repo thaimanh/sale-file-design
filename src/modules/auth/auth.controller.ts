@@ -1,9 +1,10 @@
-import {Body, Controller, Post, Req, Res} from '@nestjs/common';
-import {AuthService} from './service/auth.service';
-import {RegisterUserDto, LoginUserDTO} from '../auth/dto';
+import {Body, Controller, Get, Post, Req, Res} from '@nestjs/common';
+import {AuthService} from './auth.service';
+import {LoginUserDTO} from '../auth/dto';
 import {IResponseStatus} from '../../common/interfaces';
-import {Response} from 'express';
+import {Response, Request} from 'express';
 import {Public} from './decorator';
+import {CreateUserDto} from '@modules/users/dto/create-user.dto';
 
 @Controller('/auth')
 export class AuthController {
@@ -11,14 +12,23 @@ export class AuthController {
 
   @Post('/register')
   @Public()
-  create(@Body() registerUserDto: RegisterUserDto): Promise<IResponseStatus> {
-    return this.authService.register(registerUserDto);
+  register(@Body() createUserDto: CreateUserDto): Promise<IResponseStatus> {
+    return this.authService.register(createUserDto);
   }
 
   @Public()
   @Post('/login')
   login(@Body() loginUserDto: LoginUserDTO, @Res() response: Response) {
     return this.authService.login(loginUserDto, response);
+  }
+
+  @Public()
+  @Get('/verify')
+  verify(@Req() request: Request) {
+    const {id, otp} = request.query;
+
+    if (!id || !otp) return false;
+    return this.authService.verify({userId: String(id), otp: String(otp)});
   }
 
   @Post('/logout')

@@ -1,80 +1,58 @@
-import {HttpException, HttpStatus, Injectable} from '@nestjs/common';
-import {User} from './schema/user.schema';
-import {InformUserDTO, UpdateUserDto, SearchUserDTO} from './dto';
-import {ITEM_PER_PAGE, Role} from 'src/common/const';
-import {IObject, IResponseCommon, IResponseStatus} from '~/common/interfaces';
-import {Model, SortOrder} from 'mongoose';
-import {InjectModel} from '@nestjs/mongoose';
-import {objValidateKey, escapeRegExp} from '~/helper/functions';
-import {DetailUserDTO} from './dto/detail-user.dto';
+import {HttpException, HttpStatus, Inject, Injectable} from '@nestjs/common';
+import {BaseServiceAbstract} from 'src/services/base/base.abstract.service';
+import {User} from '@entities/index';
+import {UserRepositoryInterface} from './interfaces/user.repository.interfaces';
+import {CreateUserDto} from './dto/create-user.dto';
+import {escapeRegExp, hashMd5, objValidateKey} from '@helper/functions';
+import {SearchUserDTO} from './dto';
+import {ITEM_PER_PAGE, Role} from '@common/const';
+import {IResponseCommon} from '@common/interfaces';
 
 @Injectable()
-export class UserService {
-  constructor(@InjectModel(User.name) private userModel: Model<User>) {}
-
-  async search(searchUserDTO: SearchUserDTO): Promise<IResponseCommon<InformUserDTO[]>> {
-    const {keyword, sortKey, order, page} = searchUserDTO || {};
-
-    const $regex = escapeRegExp(keyword);
-    const query = $regex
-      ? this.userModel.find({fullName: $regex, roles: Role.User})
-      : this.userModel.find();
-
-    if (sortKey) {
-      query.sort({[sortKey]: order} as IObject<SortOrder>);
-    }
-
-    if (page) {
-      query.skip((page - 1) * ITEM_PER_PAGE).limit(ITEM_PER_PAGE);
-    }
-
-    const searchUser = await query.lean();
-
-    return {
-      result: searchUser,
-      meta: {total: searchUser?.length ?? 0, page},
-    };
+export class UsersService extends BaseServiceAbstract<User> {
+  constructor(
+    @Inject('UsersRepositoryInterface')
+    private readonly usersRepository: UserRepositoryInterface,
+  ) {
+    super(usersRepository);
   }
 
-  async displayById(id: string) {
-    const detailUser = await this.userModel.findById(id).lean();
+  async create(createUserDto: CreateUserDto): Promise<User> {
+    try {
+      const hashPassword = await hashMd5(createUserDto.password);
 
-    return {
-      result: detailUser,
-      meta: {},
-    };
-  }
+      const user = await this.usersRepository.create({
+        ...createUserDto,
+        password: hashPassword,
+      });
 
-  async detail(conditions: IObject<any>): Promise<IResponseCommon<DetailUserDTO>> {
-    const detailUser = await this.userModel.findOne(objValidateKey(conditions)).lean();
-
-    return {
-      result: detailUser,
-      meta: {},
-    };
-  }
-
-  async update(id: string, updateUserDto: Partial<UpdateUserDto>): Promise<IResponseStatus> {
-    const updateUser = await this.userModel.findByIdAndUpdate(id, updateUserDto, {new: true});
-
-    if (!updateUser) {
-      throw new HttpException(`Not found user ${id}`, HttpStatus.NOT_FOUND);
+      return user;
+    } catch (error) {
+      throw new HttpException(`Create user error: ${error}`, HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
-    return {
-      result: true,
-    };
   }
 
-  async remove(id: string) {
-    const deleteUser = await this.userModel.findByIdAndDelete(id);
-
-    if (!deleteUser) {
-      throw new HttpException(`Not found user ${id}`, HttpStatus.NOT_FOUND);
-    }
-
-    return {
-      result: true,
+  async search(searchUserDTO: SearchUserDTO): Promise<IResponseCommon<User>> {
+    const {keyword, sortKey, order, page} = searchUserDTO || {
+      sortKey: 'createdAt',
+      order: 1,
+      page: 1,
     };
+
+    const conditions = objValidateKey({
+      lastName: keyword ? {$regex: escapeRegExp(keyword)} : null,
+      role: Role.User,
+    });
+
+    const {count, items} = await this.findAll(conditions, {
+      limit: ITEM_PER_PAGE,
+      skip: (page - 1) * ITEM_PER_PAGE,
+      sort: {
+        [sortKey ?? 'createdAt']: order ?? 1,
+      },
+      lean: true,
+    });
+
+    return {result: items, meta: {total: count, page}};
   }
 }

@@ -3,7 +3,7 @@ export interface IObject<T = unknown> {
 }
 
 export interface IResponseCommon<ResultType> {
-  result: ResultType;
+  result: ResultType[] | ResultType;
   meta?:
     | {
         total: number;

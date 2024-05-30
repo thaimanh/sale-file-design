@@ -28,8 +28,8 @@ import LoggerMiddleware from './middleware/log.middleware';
   ],
   controllers: [],
   providers: [
-    {provide: APP_GUARD, useClass: RolesGuard},
     {provide: APP_GUARD, useClass: JWTGuard},
+    {provide: APP_GUARD, useClass: RolesGuard},
   ],
 })
 export class AppModule implements NestModule {

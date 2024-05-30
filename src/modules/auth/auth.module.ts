@@ -1,25 +1,30 @@
 import {Module} from '@nestjs/common';
 import {AuthController} from './auth.controller';
-import {AuthService} from './service/auth.service';
-import {User, UserSchema} from '../users/schema/user.schema';
+import {AuthService} from './auth.service';
 import {ConfigModule} from '@nestjs/config';
 import {JWTStrategy} from './strategy';
 import {JwtModule} from '@nestjs/jwt';
 import {LoggerModule} from '../logger/logger.module';
-import {SystemLogger} from '../logger/logger.service';
 import {MailModule} from '../mail/mail.module';
-import {MailService} from '../mail/mail.service';
-import {OtpService} from './service';
 import {MongooseModule} from '@nestjs/mongoose';
 import {UsersModule} from '../users/users.module';
+import {Token, TokenSchema, User, UserSchema, Otp, OtpSchema} from '@entities/index';
+import {TokenModule} from './token/token.module';
+import {OtpModule} from './otp/otp.module';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{name: User.name, schema: UserSchema}]),
+    MongooseModule.forFeature([
+      {name: User.name, schema: UserSchema},
+      {name: Token.name, schema: TokenSchema},
+      {name: Otp.name, schema: OtpSchema},
+    ]),
     ConfigModule,
     LoggerModule,
     MailModule,
     UsersModule,
+    TokenModule,
+    OtpModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET_KEY,
       signOptions: {
@@ -28,6 +33,6 @@ import {UsersModule} from '../users/users.module';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JWTStrategy, MailService, SystemLogger, OtpService],
+  providers: [AuthService, JWTStrategy],
 })
 export class AuthModule {}

@@ -12,3 +12,5 @@ export type SortOptions = {
   order: string;
   sort: string;
 };
+
+export type FindAllResponse<T> = {count: number; items: T[]};

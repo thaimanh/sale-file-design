@@ -3,13 +3,14 @@ import {ConfigService} from '@nestjs/config';
 import {PassportStrategy} from '@nestjs/passport';
 import {Strategy, ExtractJwt} from 'passport-jwt';
 import {Request} from 'express';
-import {UserService} from '~/modules/users/users.service';
+import {TokenService} from '../token/token.service';
+import {Status} from '@common/const';
 
 @Injectable()
 export class JWTStrategy extends PassportStrategy(Strategy) {
   constructor(
     configService: ConfigService,
-    private userService: UserService,
+    private tokenService: TokenService,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([JWTStrategy.extractJWT]),
@@ -26,17 +27,18 @@ export class JWTStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(req: Request, payload: any) {
-    const accessToken = req.cookies.accessToken;
+    const access_token = req.cookies.accessToken;
 
-    const {result: foundUser} = await this.userService.detail({
-      _id: payload.id,
-      accessToken: accessToken,
+    const foundToken = await this.tokenService.findOneByCondition({
+      access_token,
+      user_id: payload._id,
+      status: Status.VALID,
     });
 
-    if (!foundUser) {
+    if (!foundToken) {
       return false;
     }
 
-    return {id: payload.id, email: payload.email, roles: foundUser.roles};
+    return {id: payload.id, email: payload.email, role: payload.role};
   }
 }

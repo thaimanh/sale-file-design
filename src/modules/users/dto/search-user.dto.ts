@@ -2,11 +2,11 @@ import {IsInt, IsNumber, IsString} from 'class-validator';
 
 export class SearchUserDTO {
   @IsString()
-  keyword: string;
+  keyword?: string;
   @IsNumber()
-  page: number;
+  page?: number;
   @IsInt()
-  order: number;
+  order?: number;
   @IsString()
-  sortKey: string;
+  sortKey?: string;
 }

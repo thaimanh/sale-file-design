@@ -1,6 +1,7 @@
-import {IsInt, IsEmail, IsString, IsNotEmpty, MinLength} from 'class-validator';
+import {GENDER} from '@entities/user.entity';
+import {IsInt, IsEmail, IsString, IsNotEmpty, MinLength, IsEnum} from 'class-validator';
 
-export class RegisterUserDto {
+export class CreateUserDto {
   @IsNotEmpty()
   @IsEmail(undefined, {message: 'Email is invalid'})
   email: string;
@@ -11,21 +12,27 @@ export class RegisterUserDto {
 
   @IsNotEmpty()
   @IsString()
-  firstName: string;
+  first_name: string;
 
   @IsNotEmpty()
   @IsString()
-  lastName: string;
+  last_name: string;
 
+  @IsNotEmpty()
   @IsString()
-  fullName: string;
+  @IsEnum(GENDER)
+  gender: string;
+
+  @IsNotEmpty()
+  @IsString()
+  phone_number: string;
 
   @IsNotEmpty()
   @IsString()
   birthday: string;
 
   @IsNotEmpty()
-  roles: string;
+  role: string;
 
   @IsNotEmpty()
   @IsInt()

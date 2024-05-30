@@ -1,6 +1,3 @@
-import {ObjectId} from 'mongodb';
-import {User} from '../schema/user.schema';
+import {User} from '../../../entities/user.entity';
 
-export class DetailUserDTO extends User {
-  _id: ObjectId;
-}
+export class DetailUserDTO extends User {}
